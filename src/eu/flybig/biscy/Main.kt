@@ -5,6 +5,6 @@ package eu.flybig.biscy
  * 28.12.2018
  */
 fun main(args: Array<String>) {
-    val compiler = Compiler("literals.bitsy", options = CompilerOptions())
+    val compiler = Compiler("fib.bitsy", options = CompilerOptions())
     compiler.start()
 }

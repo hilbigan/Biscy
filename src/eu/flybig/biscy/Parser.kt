@@ -214,8 +214,12 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
 
     private fun advanceToken(){
         tokenizer.advance()
-        while(tokenizer.current.type == WHITESPACE || tokenizer.current.type == COMMENT)
+        while(ctype == WHITESPACE || ctype == COMMENT) {
             tokenizer.advance()
+            if(options.keepComments && ctype == COMMENT){
+                generator.direct("#" + tokenizer.current.value.substring(1, tokenizer.current.value.length - 2))
+            }
+        }
     }
 
     private fun match(expected: TokenType, noAdvance: Boolean = false){

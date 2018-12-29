@@ -17,7 +17,7 @@ private val keywords = TokenType.values().filter {
     it.keyword!!
 }
 
-class Tokenizer(file: File){
+class Tokenizer(file: File, val options: CompilerOptions){
 
     var current: Token = CommentToken("illegal") //invalid initial value
         private set(value) {
@@ -61,7 +61,6 @@ class Tokenizer(file: File){
                     }
 
                 } else return IntegerToken(start + reader.take(::isDigit))
-
             }
             x.isWhitespace() -> return WhitespaceToken(reader.take(::isWhitespace))
             x == COMMENT_START -> return CommentToken(reader.takeUntil { it == COMMENT_END })
@@ -74,7 +73,7 @@ class Tokenizer(file: File){
                 return if(ident in keywords){
                     KeywordToken(TokenType.getForKeyword(ident), ident)
                 } else {
-                    if(ident.toUpperCase() == ident){
+                    if(ident.toUpperCase() == ident && options.outputVerbose){
                         println("[WARNING] All uppercase identifier $ident is not a keyword!")
                     }
                     VariableToken(ident)

@@ -11,7 +11,7 @@ class Compiler(filepath: String,
     private val tokenizer: Tokenizer
 
     init {
-        tokenizer = Tokenizer(File(filepath))
+        tokenizer = Tokenizer(File(filepath), options)
         parser = Parser(tokenizer, options)
     }
 
@@ -27,7 +27,8 @@ class Compiler(filepath: String,
 
 data class CompilerOptions(
     val printVarDump: Boolean = true,
-    val outputVerbose: Boolean = true
+    val outputVerbose: Boolean = true,
+    val keepComments: Boolean = true
 ) {
     val outPrefix = if(outputVerbose) "[OUTPUT] " else ""
     val indent = outputVerbose

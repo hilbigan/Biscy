@@ -24,7 +24,7 @@ class Generator(val indent: Boolean = true, val outPrefix: String) {
     }
 
     fun breakLoop(){
-        fout("beq x0 x0 END_${loopIdentStack.peek()} #break")
+        fout("beq x0 x0 END_${loopIdentStack.peek()}")
     }
 
     fun beginIf(ifType: TokenType, exprReg: Int){
