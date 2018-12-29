@@ -1,0 +1,11 @@
+BEGIN
+x = 5
+y = x + 10
+
+z = (((x * 0) + 1) - 1)
+
+IFZ y
+    LOOP
+    END
+END
+END
