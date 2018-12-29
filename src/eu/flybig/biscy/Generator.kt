@@ -19,7 +19,8 @@ class Generator(val indent: Boolean = true) {
 
     fun endLoop(){
         val loopIdent = loopIdentStack.pop()
-        fout("END_$loopIdent: beq x0 x0 $loopIdent")
+        fout("beq x0 x0 $loopIdent")
+        fout("END_$loopIdent:")
     }
 
     fun breakLoop(){

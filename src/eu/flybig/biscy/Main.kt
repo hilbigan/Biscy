@@ -8,7 +8,7 @@ import java.io.PushbackReader
  * 28.12.2018
  */
 fun main(args: Array<String>) {
-    val tokenizer = Tokenizer(File("test.bitsy"))
+    val tokenizer = Tokenizer(File("fib.bitsy"))
 
     /*while(tokenizer.hasNext()){
         tokenizer.advance()

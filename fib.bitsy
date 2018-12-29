@@ -1,0 +1,18 @@
+BEGIN
+  fib_count = 10 { n'th fibonacci number }
+  this_fib = 1
+
+  LOOP
+    IFN fib_count - 1
+      BREAK
+    END
+
+    WRITE last_fib 0 { Write result to adress 0x0}
+
+    next_fib = this_fib + last_fib
+    last_fib = this_fib
+    this_fib = next_fib
+
+    fib_count = fib_count - 1
+  END
+END
