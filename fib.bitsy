@@ -1,5 +1,5 @@
 BEGIN
-  fib_count = 10 { n'th fibonacci number }
+  fib_count = 10 { (n-1)'th fibonacci number }
   this_fib = 1
 
   LOOP

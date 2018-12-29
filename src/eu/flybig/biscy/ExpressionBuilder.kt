@@ -5,9 +5,11 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
     var parts = mutableListOf<Any>()
 
     fun resolve(){
+        val initialSize = parts.size
         val result = eval()
         when(result){
             is IntegerToken -> generator.direct("li x$evalReg ${result.value.toInt()}")
+            is VariableToken -> if(initialSize == 1) generator.direct("add x$evalReg x${variables.getRegister(result.value)} x0")
         }
     }
 
