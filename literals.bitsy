@@ -1,0 +1,9 @@
+BEGIN
+    x = 0
+    x = 1
+    x = 0x1
+    x = 0xFF
+    x = 0b0
+    x = 0b1010
+    x = 0x0a
+END

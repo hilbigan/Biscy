@@ -7,6 +7,8 @@ import java.lang.Character.isWhitespace
 
 
 private const val identifierChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+private const val hexChars = "0123456789ABCDEFabcdef"
+private const val binChars = "01"
 private const val COMMENT_START = '{'
 private const val COMMENT_END = '}'
 private val keywords = TokenType.values().filter {
@@ -39,7 +41,28 @@ class Tokenizer(file: File){
     private fun takeNext(): Token {
         val x = reader.peek()
         when {
-            x.isDigit() -> return IntegerToken(reader.take(::isDigit))
+            x.isDigit() -> {
+                val start = reader.next()
+                if(start == '0' && !reader.peek().isWhitespace()){
+                    val next = reader.next()
+                    if(next == 'b'){
+                        val raw = reader.take(::isBinLiteral)
+                        if(!reader.peek().isWhitespace()) fail("Illegal character in binary literal: ${reader.peek()}")
+                        if(raw.isBlank()) fail("Invalid integer literal: ${"" + start + next}")
+                        return IntegerToken(raw.toInt(2).toString())
+                    } else if(next == 'x'){
+                        val raw = reader.take(::isHexLiteral)
+                        if(!reader.peek().isWhitespace()) fail("Illegal character in hexadecimal literal: ${reader.peek()}")
+                        if(raw.isBlank()) fail("Invalid integer literal: ${"" + start + next}")
+                        return IntegerToken(raw.toInt(16).toString())
+                    } else {
+                        val raw = reader.take(::isDigit)
+                        return IntegerToken("" + start + next + raw)
+                    }
+
+                } else return IntegerToken(start + reader.take(::isDigit))
+
+            }
             x.isWhitespace() -> return WhitespaceToken(reader.take(::isWhitespace))
             x == COMMENT_START -> return CommentToken(reader.takeUntil { it == COMMENT_END })
             x.toString() in keywords -> {
@@ -63,6 +86,14 @@ class Tokenizer(file: File){
                 return CommentToken("illegal") //unreachable
             }
         }
+    }
+
+    private fun isHexLiteral(char: Char): Boolean {
+        return char in hexChars
+    }
+
+    private fun isBinLiteral(char: Char): Boolean {
+        return char in binChars
     }
 
     private fun isIdentifier(char: Char): Boolean {
