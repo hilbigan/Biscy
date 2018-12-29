@@ -57,4 +57,12 @@ class Variables {
     private fun indexToMemory(idx: Int): Int {
         return BASE_ADDRESS + idx * 4
     }
+
+    fun dump() {
+        println("=== Begin Var Dump ===")
+        variables.filter { it != null }.forEach {
+            println("[VARS] x${getRegister(it!!)}\t$it")
+        }
+        println("=== End Var Dump ===")
+    }
 }

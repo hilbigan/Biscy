@@ -2,10 +2,10 @@ package eu.flybig.biscy
 
 import eu.flybig.biscy.TokenType.*
 
-class Parser(val tokenizer: Tokenizer){
+class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
 
-    val generator = Generator()
-    val vars = Variables()
+    val generator = Generator(options.indent, options.outPrefix)
+    val variables = Variables()
 
     init {
         tokenizer.advance()
@@ -38,7 +38,7 @@ class Parser(val tokenizer: Tokenizer){
                 val eval = expr(5)
                 println(eval.toString())
                 println("eval:")
-                vars.getRegister("result")
+                variables.getRegister("result")
                 val result = eval.eval()
                 println(result.unpack().value)
             }*/
@@ -68,7 +68,7 @@ class Parser(val tokenizer: Tokenizer){
             IFP -> match(IFP)
         }
 
-        val temp = vars.acquireTemporary()
+        val temp = variables.acquireTemporary()
         expr(temp).resolve()
 
         generator.beginIf(ifType, temp)
@@ -97,22 +97,22 @@ class Parser(val tokenizer: Tokenizer){
         match(VARIABLE)
         if(ctype == INTEGER){
             val trg = tokenizer.current.value.toInt()
-            val temp = if(trg != 0) vars.acquireTemporary() else 0
+            val temp = if(trg != 0) variables.acquireTemporary() else 0
             match(INTEGER)
 
             if(temp != 0) generator.direct("li x$temp $trg")
-            generator.direct("${if(load) "lw" else "sw"} x${vars.getRegister(src)} 0(x$temp)")
+            generator.direct("${if(load) "lw" else "sw"} x${variables.getRegister(src)} 0(x$temp)")
         } else if(ctype == VARIABLE){
             val trg = tokenizer.current.value
             match(VARIABLE)
-            generator.direct("${if(load) "lw" else "sw"} x${vars.getRegister(src)} 0(x${vars.getRegister(trg)})")
+            generator.direct("${if(load) "lw" else "sw"} x${variables.getRegister(src)} 0(x${variables.getRegister(trg)})")
         } else {
             fail("Invalid target address: Must be variable or integer literal")
         }
     }
 
     fun assignment(){
-        val reg = vars.getRegister((tokenizer.current as VariableToken).value)
+        val reg = variables.getRegister((tokenizer.current as VariableToken).value)
         match(VARIABLE)
         match(ASSIGNMENT)
         expr(reg).resolve()
@@ -124,7 +124,7 @@ class Parser(val tokenizer: Tokenizer){
     }
 
     fun expr(evalReg: Int): ExpressionBuilder {
-        val exprBuilder = ExpressionBuilder(evalReg, generator, vars)
+        val exprBuilder = ExpressionBuilder(evalReg, generator, variables)
 
         term(exprBuilder)
 

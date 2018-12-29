@@ -3,7 +3,7 @@ package eu.flybig.biscy
 import eu.flybig.biscy.TokenType.*
 import java.util.*
 
-class Generator(val indent: Boolean = true) {
+class Generator(val indent: Boolean = true, val outPrefix: String) {
 
     var loops = 0
     var loopIdentStack = Stack<String>()
@@ -68,7 +68,7 @@ class Generator(val indent: Boolean = true) {
     }
 
     fun out(str: String){
-        println("[OUTPUT] $str")
+        println("$outPrefix$str")
     }
 
 }
