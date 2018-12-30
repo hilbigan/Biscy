@@ -1,2 +1,0 @@
-package eu.flybig.biscy
-
