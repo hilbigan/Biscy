@@ -37,7 +37,7 @@ fun main(args: Array<String>) {
 }
 
 fun printUsage(){
-    println("Usage: java -jar biscy.jar <input-file.bitsy> -[flags]")
+    println("Usage: java -jar biscy.jar <input-file.bitsy> [flags]")
     println("Flags:")
     println("\tv\tverbose output")
     println("\tk\tKeep comments")
