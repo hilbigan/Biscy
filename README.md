@@ -6,6 +6,7 @@ WRITE <variable to write> <address to write to (register or literal)>
 LOAD  <variable to load into> <address to read from (register or literal)>
 ```
 Additionally, support for binary (`0b1010`) and hexadecimal (`0xa`) integer literals were added.
+Division and modulus operations are not supported.
 
 ### Usage
 ```java -jar release/biscy.jar <input-file.bitsy> [flags]```
