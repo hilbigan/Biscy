@@ -1,6 +1,0 @@
-BEGIN
-{ This is a comment }
-WRITE abec 20
-LOAD abec abec
-
-END

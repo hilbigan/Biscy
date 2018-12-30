@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Bitsy-2-Risc-V.iml" filepath="$PROJECT_DIR$/Bitsy-2-Risc-V.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Biscy.iml" filepath="$PROJECT_DIR$/Biscy.iml" />
     </modules>
   </component>
 </project>

@@ -71,6 +71,9 @@ class Tokenizer(file: File, val options: CompilerOptions){
             isIdentifier(x) -> {
                 val ident = reader.take(::isIdentifier)
                 return if(ident in keywords){
+                    if(ident == "PRINT" || ident == "READ"){
+                        fail("PRINT and READ keywords are not supported.")
+                    }
                     KeywordToken(TokenType.getForKeyword(ident), ident)
                 } else {
                     if(ident.toUpperCase() == ident && options.outputVerbose){
