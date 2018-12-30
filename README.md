@@ -1,12 +1,12 @@
 # Biscy
-Bitsy to RISC-V compiler ([Bitsy Specification](https://github.com/apbendi/bitsyspec/blob/master/BITSY.md)).
+Bitsy to RISC-V compiler ([Bitsy Specification](https://github.com/apbendi/bitsyspec/blob/master/BITSY.md)).  
 `PRINT` and `READ` are not supported, instead `WRITE` and `LOAD` have been added:
 ```
 WRITE <variable to write> <address to write to (register or literal)>
 LOAD  <variable to load into> <address to read from (register or literal)>
 ```
-Additionally, support for binary (`0b1010`) and hexadecimal (`0xa`) integer literals were added.
-Division and modulus operations are not supported. Division that can be evaluated at compile time is supported (no guarantee), so `x = 42 / 2` should work.
+Additionally, support for binary (`0b1010`) and hexadecimal (`0xa`) integer literals were added.  
+Division and modulus operations are not supported. Division that can be evaluated at compile time is supported (no guarantee), so `x = 42 / 2` should work.  
 More than 29 variables are not supported.
 
 ### Usage
