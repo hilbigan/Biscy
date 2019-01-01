@@ -11,7 +11,7 @@ More than 29 variables are not supported.
 
 ### Usage
 ```java -jar release/biscy.jar <input-file.bitsy> [flags]```
-Flags:
+Flags:  
 * `v`: verbose output, warnings
 * `k`: Keep comments
 * `d`: Dump variable/register information
