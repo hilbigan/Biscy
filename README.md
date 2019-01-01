@@ -10,7 +10,8 @@ Division and modulus operations are not supported. Division that can be evaluate
 More than 29 variables are not supported.
 
 ### Usage
-```java -jar release/biscy.jar <input-file.bitsy> [flags]```
+```java -jar release/biscy.jar <input-file.bitsy> [flags]```  
+
 Flags:  
 * `v`: verbose output, warnings
 * `k`: Keep comments
