@@ -9,10 +9,6 @@ var compiler: Compiler? = null
  * 28.12.2018
  */
 fun main(args: Array<String>) {
-    if(true){
-        compiler = Compiler("test/expr.bitsy", options = CompilerOptions())
-        compiler!!.start()
-    }
     if(args.isEmpty()){
         println("Not enough arguments.")
         printUsage()
