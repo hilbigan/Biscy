@@ -2,11 +2,17 @@ package eu.flybig.biscy
 
 import java.io.File
 
+var compiler: Compiler? = null
+
 /**
  * @author Aaron Hilbig
  * 28.12.2018
  */
 fun main(args: Array<String>) {
+    if(true){
+        compiler = Compiler("test/expr.bitsy", options = CompilerOptions())
+        compiler!!.start()
+    }
     if(args.isEmpty()){
         println("Not enough arguments.")
         printUsage()
@@ -33,6 +39,14 @@ fun main(args: Array<String>) {
 
         val compiler = Compiler(args[0], options = options)
         compiler.start()
+    }
+}
+
+fun fail(msg: String){
+    if(compiler != null){
+        compiler!!.fail(msg)
+    } else {
+        error(msg)
     }
 }
 

@@ -19,7 +19,7 @@ private val keywords = TokenType.values().filter {
 
 class Tokenizer(file: File, val options: CompilerOptions){
 
-    var current: Token = CommentToken("illegal") //invalid initial value
+    var current: Token = CommentToken("illegal") //invalid initial add
         private set(value) {
             field = value
         }
@@ -44,20 +44,22 @@ class Tokenizer(file: File, val options: CompilerOptions){
             x.isDigit() -> {
                 val start = reader.next()
                 if(start == '0' && !reader.peek().isWhitespace()){
-                    val next = reader.next()
+                    var next = reader.peek()
                     if(next == 'b'){
+                        next = reader.next()
                         val raw = reader.take(::isBinLiteral)
-                        if(!reader.peek().isWhitespace()) fail("Illegal character in binary literal: ${reader.peek()}")
+                        //if(!reader.peek().isWhitespace()) fail("Illegal character in binary literal: ${reader.peek()}")
                         if(raw.isBlank()) fail("Invalid integer literal: ${"" + start + next}")
                         return IntegerToken(raw.toInt(2).toString())
                     } else if(next == 'x'){
+                        next = reader.next()
                         val raw = reader.take(::isHexLiteral)
-                        if(!reader.peek().isWhitespace()) fail("Illegal character in hexadecimal literal: ${reader.peek()}")
+                        //if(!reader.peek().isWhitespace()) fail("Illegal character in hexadecimal literal: ${reader.peek()}")
                         if(raw.isBlank()) fail("Invalid integer literal: ${"" + start + next}")
                         return IntegerToken(raw.toInt(16).toString())
                     } else {
                         val raw = reader.take(::isDigit)
-                        return IntegerToken("" + start + next + raw)
+                        return IntegerToken("" + start + raw)
                     }
 
                 } else return IntegerToken(start + reader.take(::isDigit))
@@ -108,9 +110,11 @@ class Tokenizer(file: File, val options: CompilerOptions){
         System.exit(1)
     }
 
-
 }
-abstract class Token(val type: TokenType, val value: String)
+
+interface Evaluable
+
+abstract class Token(val type: TokenType, val value: String) : Evaluable
 
 class VariableToken(value: String) : Token(TokenType.VARIABLE, value)
 

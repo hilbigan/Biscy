@@ -24,6 +24,9 @@ class Generator(val indent: Boolean = true, val outPrefix: String) {
     }
 
     fun breakLoop(){
+        if(loopIdentStack.empty()){
+            fail("Unexpected BREAK: Nothing to break out of")
+        }
         fout("beq x0 x0 END_${loopIdentStack.peek()}")
     }
 

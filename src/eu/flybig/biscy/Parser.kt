@@ -19,31 +19,33 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
 
     fun block(allowElse: Boolean = false){
         while(ctype != END && (!allowElse || ctype != ELSE)){
+            var empty = true
             optional(LOOP){
                 loop()
+                empty = false
             }
             optional(BREAK){
                 doBreak()
+                empty = false
             }
             optional(VARIABLE){
                 assignment()
+                empty = false
             }
             optional(WRITE){
                 memory(load = false)
+                empty = false
             }
             optional(LOAD){
                 memory(load = true)
+                empty = false
             }
-            /*optional(PLUS, MINUS, LPAREN, VARIABLE, INTEGER){
-                val eval = expr(5)
-                println(eval.toString())
-                println("eval:")
-                variables.getRegister("result")
-                val result = eval.eval()
-                println(result.unpack().value)
-            }*/
             optional(IFZ, IFN, IFP){
                 ifstmt()
+                empty = false
+            }
+            if(empty && ctype != END && (!allowElse || ctype != ELSE)){
+                fail("Invalid token: $ctype (\"${tokenizer.current.value}\")")
             }
         }
     }
@@ -145,7 +147,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
     }
 
     fun addop(exprBuilder: ExpressionBuilder){
-        exprBuilder.value(tokenizer.current)
+        exprBuilder.add(tokenizer.current)
         when(ctype){
             PLUS -> {
                 match(PLUS)
@@ -158,7 +160,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
     }
 
     fun mulop(exprBuilder: ExpressionBuilder){
-        exprBuilder.value(tokenizer.current)
+        exprBuilder.add(tokenizer.current)
         when(ctype){
             MULTIPLY -> {
                 match(MULTIPLY)
@@ -174,23 +176,25 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
     }
 
     fun signedFactor(exprBuilder: ExpressionBuilder){
-        optional(PLUS, MINUS) { addop(exprBuilder) }
+        optional(PLUS, MINUS) {
+            addop(exprBuilder)
+        }
         factor(exprBuilder)
     }
 
     fun factor(exprBuilder: ExpressionBuilder){
         when(ctype){
             INTEGER -> {
-                exprBuilder.value(tokenizer.current)
+                exprBuilder.add(tokenizer.current)
                 match(INTEGER)
             }
             VARIABLE -> {
-                exprBuilder.value(tokenizer.current)
+                exprBuilder.add(tokenizer.current)
                 match(VARIABLE)
             }
             LPAREN -> {
                 match(LPAREN)
-                exprBuilder.value(expr(exprBuilder.evalReg))
+                exprBuilder.add(expr(exprBuilder.evalReg))
                 match(RPAREN)
             }
             else -> fail("Expected factor, but got \"${tokenizer.current.value}\"")
@@ -232,10 +236,6 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
         if(!condition){
             fail(errorMsg)
         }
-    }
-
-    private fun fail(msg: String){
-        tokenizer.fail(msg)
     }
 
 }

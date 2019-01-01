@@ -18,8 +18,7 @@ class Variables {
         } else {
             val idx = variables.indexOf(variables.find { it == null })
             if(idx == -1){
-                System.err.println("[ERROR] Too many variables! Currently only $USABLE_REGISTERS variables are supported!")
-                System.exit(1)
+                fail("Too many variables! Currently only $USABLE_REGISTERS variables are supported!")
             }
             variables[idx] = ident
             idx
@@ -30,8 +29,7 @@ class Variables {
         if(variables[registerToIndex(register)] != null){
             return variables[registerToIndex(register)]!!
         } else {
-            System.err.println("[ERROR] Unused register ${registerToIndex(register)}")
-            System.exit(1)
+            fail("Unused register ${registerToIndex(register)}")
             return "" //unreachable
         }
     }

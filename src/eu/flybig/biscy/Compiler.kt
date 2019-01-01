@@ -23,6 +23,10 @@ class Compiler(filepath: String,
         onFinished.invoke()
     }
 
+    fun fail(msg: String){
+        tokenizer.fail(msg)
+    }
+
 }
 
 data class CompilerOptions(

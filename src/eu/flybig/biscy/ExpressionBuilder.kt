@@ -1,8 +1,10 @@
 package eu.flybig.biscy
 
-class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variables: Variables) {
+import java.security.Key
 
-    var parts = mutableListOf<Any>()
+class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variables: Variables) : Evaluable {
+
+    var parts = mutableListOf<Evaluable>()
 
     fun resolve(){
         val initialSize = parts.size
@@ -21,6 +23,33 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                 it
             }
         }.toMutableList()
+
+        fun orderOfOperations(it: Evaluable): Boolean = it is KeywordToken && (it.type in listOf(TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MODULUS))
+
+        while(parts.size > 3){
+            if(parts.any(::orderOfOperations)){
+                val expr = ExpressionBuilder(variables.acquireTemporary(), generator, variables)
+                val idx = parts.indexOf(parts.first(::orderOfOperations))
+
+                expr.add(parts[idx - 1])
+                expr.add(parts[idx])
+                expr.add(parts[idx + 1])
+
+                parts = parts.filterIndexed { index, _ -> index !in listOf(idx - 1, idx, idx + 1) }.toMutableList()
+
+                parts.add(idx - 1, expr.eval())
+            } else {
+                val takeThree = parts[0] !is KeywordToken
+                val expr = ExpressionBuilder(variables.acquireTemporary(), generator, variables)
+                expr.add(parts[0])
+                expr.add(parts[1])
+                if (takeThree)
+                    expr.add(parts[2])
+                parts = parts.drop(if (takeThree) 3 else 2).toMutableList()
+
+                parts.add(0, expr.eval())
+            }
+        }
 
         if(parts.size == 3){
             if(parts[1] !is KeywordToken){
@@ -200,7 +229,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
         return IntegerToken(-1) //unreachable
     }
 
-    fun value(value: Any){
+    fun add(value: Evaluable){
         parts.add(value)
     }
 
@@ -209,9 +238,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
     }
 
     fun fail(msg: String){
-        System.err.println("[ERROR] ExpressionBuilder: $msg")
-        System.err.println("in " + this.toString())
-        System.exit(1)
+        fail("ExpressionBuilder: $msg")
     }
 }
 
@@ -222,7 +249,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
 
     override fun isResolved(): Boolean = false
 
-    override fun unpack(): Token = error("Cannot resolve this operation to a value at compile time.")
+    override fun unpack(): Token = error("Cannot resolve this operation to a add at compile time.")
 
 }*/
 
