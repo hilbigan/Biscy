@@ -120,7 +120,7 @@ class Generator(val indent: Boolean = true, val outPrefix: String) {
 
         if(routines.any { it !in calls } && compiler?.options?.outputVerbose == true){
             routines.filter { it !in calls }.forEach {
-                println("[WARNING] Routine $it is never called!")
+                warn("Routine $it is never called!")
             }
         }
     }

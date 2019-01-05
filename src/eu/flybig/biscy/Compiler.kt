@@ -10,6 +10,8 @@ class Compiler(filepath: String,
     private val parser: Parser
     private val tokenizer: Tokenizer
 
+    val warnings = mutableListOf<String>()
+
     init {
         tokenizer = Tokenizer(File(filepath), options)
         parser = Parser(tokenizer, options)
@@ -25,6 +27,10 @@ class Compiler(filepath: String,
 
     fun fail(msg: String){
         tokenizer.fail(msg)
+    }
+
+    fun warn(msg: String){
+        warnings.add(msg)
     }
 
 }

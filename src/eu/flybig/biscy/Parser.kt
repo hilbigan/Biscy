@@ -128,9 +128,11 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
         }
         match(END)
 
-        /*if(vars.any{!variables.isDeclared(it)}){
-            fail("Undeclared variable \"${vars.first { !variables.isDeclared(it) }}\"")
-        }*/
+        if(vars.any{!variables.isDeclared(it)} && options.outputVerbose){
+            vars.filter { !variables.isDeclared(it) }.forEach {
+                warn("Pushing previously undeclared variable \"$it\" to stack")
+            }
+        }
 
         generator.stack(unstack, vars, variables)
     }
@@ -181,8 +183,8 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
             IFP -> match(IFP)
         }
 
-        val temp = variables.acquireTemporary()
-        expr(temp).resolve()
+        //val temp = variables.acquireTemporary()
+        val temp = expr(variables.acquireTemporary()).resolve(true)
 
         generator.beginIf(ifType, temp)
 
@@ -241,7 +243,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
 
         term(exprBuilder)
 
-        zeroOrMore(PLUS, MINUS){
+        zeroOrMore(PLUS, MINUS, OR){
             addop(exprBuilder)
             term(exprBuilder)
         }
@@ -251,7 +253,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
 
     fun term(exprBuilder: ExpressionBuilder){
         signedFactor(exprBuilder)
-        zeroOrMore(DIVIDE, MULTIPLY, MODULUS) {
+        zeroOrMore(DIVIDE, MULTIPLY, MODULUS, XOR, AND, SHL, SHR, SHRA) {
             mulop(exprBuilder)
             factor(exprBuilder)
         }
@@ -265,6 +267,9 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
             }
             MINUS -> {
                 match(MINUS)
+            }
+            OR -> {
+                match(OR)
             }
             else -> fail("Expected sum operator (+ -), but got \"${tokenizer.current.value}\"")
         }
@@ -281,6 +286,21 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
             }
             MODULUS -> {
                 match(MODULUS)
+            }
+            XOR -> {
+                match(XOR)
+            }
+            AND -> {
+                match(AND)
+            }
+            SHL -> {
+                match(SHL)
+            }
+            SHR -> {
+                match(SHR)
+            }
+            SHRA -> {
+                match(SHRA)
             }
             else -> fail("Expected mul operator (* / %), but got \"${tokenizer.current.value}\"")
         }

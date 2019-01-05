@@ -1,16 +1,23 @@
 package eu.flybig.biscy
 
+import eu.flybig.biscy.TokenType.*
+
 class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variables: Variables) : Evaluable {
 
     var parts = mutableListOf<Evaluable>()
 
-    fun resolve(){
+    fun resolve(ifstmt: Boolean = false): Int {
         val initialSize = parts.size
         val result = eval()
         when(result){
             is IntegerToken -> generator.direct("li x$evalReg ${result.value.toInt()}")
-            is VariableToken -> if(initialSize == 1) generator.direct("add x$evalReg x${variables.getRegister(result.value)} x0")
+            is VariableToken -> if(variables.getRegister(result.value) != evalReg && !ifstmt){
+                generator.direct("add x$evalReg x${variables.getRegister(result.value)} x0")
+            } else if(ifstmt){
+                return variables.getRegister(result.value)
+            }
         }
+        return evalReg
     }
 
     fun eval(treg: Int = evalReg): Token {
@@ -22,7 +29,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
             }
         }.toMutableList()
 
-        fun orderOfOperations(it: Evaluable): Boolean = it is KeywordToken && (it.type in listOf(TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MODULUS))
+        fun orderOfOperations(it: Evaluable): Boolean = it is KeywordToken && (it.type in listOf(MULTIPLY, DIVIDE, MODULUS, SHL, SHR, AND, SHRA))
 
         while(parts.size > 3){
             if(parts.any(::orderOfOperations)){
@@ -66,6 +73,12 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                         TokenType.MINUS -> return IntegerToken(x - y)
                         TokenType.MULTIPLY -> return IntegerToken(x * y)
                         TokenType.DIVIDE -> return IntegerToken(x / y)
+                        TokenType.AND -> return IntegerToken(x and y)
+                        TokenType.OR -> return IntegerToken(x or y)
+                        TokenType.XOR -> return IntegerToken(x xor y)
+                        TokenType.SHL -> return IntegerToken(x shl y)
+                        TokenType.SHR -> return IntegerToken(x ushr y)
+                        TokenType.SHRA -> return IntegerToken(x shr y)
                     }
                 } catch (e: NumberFormatException){
                     fail("Could not parse an integer literal.")
@@ -74,33 +87,68 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                 try {
                     val x = (parts[0] as IntegerToken).value.toInt()
 
-                    if(x == 0 && ((parts[1] as Token).type == TokenType.PLUS || (parts[1] as Token).type == TokenType.MINUS)){
+                    if(x == 0 && ((parts[1] as Token).type == TokenType.PLUS || (parts[1] as Token).type == TokenType.MINUS || (parts[1] as Token).type == TokenType.OR || (parts[1] as Token).type == TokenType.XOR)){
                         return (parts[2] as VariableToken)
                     } else if(x == 1 && (parts[1] as Token).type == TokenType.MULTIPLY){
                         return (parts[2] as VariableToken)
+                    } else if(x == 0 && ((parts[1] as Token).type in listOf(SHL, SHR, SHRA, AND, MULTIPLY))){
+                        return IntegerToken(0)
                     } else {
-                        var reg = variables.getRegister((parts[2] as VariableToken).value)
+                        val reg = variables.getRegister((parts[2] as VariableToken).value)
                         when((parts[1] as Token).type){
-                            TokenType.PLUS -> {
+                            PLUS -> {
                                 generator.direct("addi x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
-                            TokenType.MINUS -> {
+                            MINUS -> {
                                 val temp = variables.acquireTemporary()
                                 generator.direct("li x$temp $x")
                                 generator.direct("sub x$treg x$temp x$reg")
                                 variables.free(temp)
                                 return simpleResult(treg, variables)
                             }
-                            TokenType.MULTIPLY -> {
+                            MULTIPLY -> {
                                 val temp = variables.acquireTemporary()
                                 generator.direct("li x$temp $x")
                                 generator.direct("mul x$treg x$temp x$reg")
                                 variables.free(temp)
                                 return simpleResult(treg, variables)
                             }
-                            TokenType.DIVIDE -> {
-                                fail("Division not implemented")
+                            AND -> {
+                                generator.direct("andi x$treg x$reg $x")
+                                return simpleResult(treg, variables)
+                            }
+                            OR -> {
+                                generator.direct("ori x$treg x$reg $x")
+                                return simpleResult(treg, variables)
+                            }
+                            XOR -> {
+                                generator.direct("xori x$treg x$reg $x")
+                                return simpleResult(treg, variables)
+                            }
+                            SHL -> {
+                                val temp = variables.acquireTemporary()
+                                generator.direct("li x$temp $x")
+                                generator.direct("sll x$treg x$temp $reg")
+                                variables.free(temp)
+                                return simpleResult(treg, variables)
+                            }
+                            SHR -> {
+                                val temp = variables.acquireTemporary()
+                                generator.direct("li x$temp $x")
+                                generator.direct("srl x$treg x$temp $reg")
+                                variables.free(temp)
+                                return simpleResult(treg, variables)
+                            }
+                            SHRA -> {
+                                val temp = variables.acquireTemporary()
+                                generator.direct("li x$temp $x")
+                                generator.direct("sra x$treg x$temp x$reg")
+                                variables.free(temp)
+                                return simpleResult(treg, variables)
+                            }
+                            DIVIDE, MODULUS -> {
+                                fail("Division/Modulus not implemented")
                             }
                         }
                     }
@@ -111,9 +159,10 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                 try {
                     val x = (parts[2] as IntegerToken).value.toInt()
 
-                    if(x == 0 && ((parts[1] as Token).type == TokenType.PLUS || (parts[1] as Token).type == TokenType.MINUS)){
+                    //plus minus or xor shl shr shra
+                    if(x == 0 && ((parts[1] as Token).type in listOf(PLUS, MINUS, OR, XOR, SHL, SHR, SHRA))){
                         return (parts[0] as VariableToken)
-                    } else if(x == 0 && (parts[1] as Token).type == TokenType.MULTIPLY){
+                    } else if(x == 0 && ((parts[1] as Token).type == TokenType.MULTIPLY || (parts[1] as Token).type == AND)){
                         return IntegerToken(0)
                     } else if(x == 0 && (parts[1] as Token).type == TokenType.DIVIDE){
                         fail("Divide by zero")
@@ -121,25 +170,49 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                     } else if(x == 1 && ((parts[1] as Token).type == TokenType.MULTIPLY || (parts[1] as Token).type == TokenType.DIVIDE)){
                         return (parts[0] as VariableToken)
                     } else {
-                        var reg = variables.getRegister((parts[0] as VariableToken).value)
+                        val reg = variables.getRegister((parts[0] as VariableToken).value)
                         when((parts[1] as Token).type){
-                            TokenType.PLUS -> {
+                            PLUS -> {
                                 generator.direct("addi x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
-                            TokenType.MINUS -> {
+                            MINUS -> {
                                 generator.direct("addi x$treg x$reg -$x")
                                 return simpleResult(treg, variables)
                             }
-                            TokenType.MULTIPLY -> {
+                            MULTIPLY -> {
                                 val temp = variables.acquireTemporary()
                                 generator.direct("li x$temp $x")
                                 generator.direct("mul x$treg x$temp x$reg")
                                 variables.free(temp)
                                 return simpleResult(treg, variables)
                             }
-                            TokenType.DIVIDE -> {
-                                fail("Division not implemented")
+                            AND -> {
+                                generator.direct("andi x$treg x$reg $x")
+                                return simpleResult(treg, variables)
+                            }
+                            OR -> {
+                                generator.direct("ori x$treg x$reg $x")
+                                return simpleResult(treg, variables)
+                            }
+                            XOR -> {
+                                generator.direct("xori x$treg x$reg $x")
+                                return simpleResult(treg, variables)
+                            }
+                            SHL -> {
+                                generator.direct("slli x$treg x$reg $x")
+                                return simpleResult(treg, variables)
+                            }
+                            SHR -> {
+                                generator.direct("srli x$treg x$reg $x")
+                                return simpleResult(treg, variables)
+                            }
+                            SHRA -> {
+                                generator.direct("srai x$treg x$reg x$x")
+                                return simpleResult(treg, variables)
+                            }
+                            DIVIDE, MODULUS -> {
+                                fail("Division/Modulus not implemented")
                             }
                         }
                     }
@@ -153,19 +226,43 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
             val src0 = variables.getRegister((parts[0] as VariableToken).value)
             val src1 = variables.getRegister((parts[2] as VariableToken).value)
             when(op){
-                TokenType.PLUS -> {
+                PLUS -> {
                     generator.direct("add x$treg x$src0 x$src1")
                     return simpleResult(treg, variables)
                 }
-                TokenType.MINUS -> {
+                MINUS -> {
                     generator.direct("sub x$treg x$src0 x$src1")
                     return simpleResult(treg, variables)
                 }
-                TokenType.MULTIPLY -> {
+                MULTIPLY -> {
                     generator.direct("mul x$treg x$src0 x$src1")
                     return simpleResult(treg, variables)
                 }
-                TokenType.DIVIDE -> {
+                AND -> {
+                    generator.direct("and x$treg x$src0 x$src1")
+                    return simpleResult(treg, variables)
+                }
+                OR -> {
+                    generator.direct("or x$treg x$src0 x$src1")
+                    return simpleResult(treg, variables)
+                }
+                XOR -> {
+                    generator.direct("xor x$treg x$src0 $src1")
+                    return simpleResult(treg, variables)
+                }
+                SHL -> {
+                    generator.direct("sll x$treg x$src0 x$src1")
+                    return simpleResult(treg, variables)
+                }
+                SHR -> {
+                    generator.direct("srl x$treg x$src0 x$src1")
+                    return simpleResult(treg, variables)
+                }
+                SHRA -> {
+                    generator.direct("sra x$treg x$src0 x$src1")
+                    return simpleResult(treg, variables)
+                }
+                DIVIDE, MODULUS -> {
                     fail("Division not implemented")
                 }
             }

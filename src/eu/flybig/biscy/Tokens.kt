@@ -3,6 +3,7 @@ package eu.flybig.biscy
 import java.io.File
 import java.lang.Character.isDigit
 import java.lang.Character.isWhitespace
+import javax.lang.model.SourceVersion.isIdentifier
 
 
 private const val identifierChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
@@ -80,12 +81,20 @@ class Tokenizer(file: File, val options: CompilerOptions){
                     KeywordToken(TokenType.getForKeyword(ident), ident)
                 } else {
                     if(ident.toUpperCase() == ident && options.outputVerbose){
-                        println("[WARNING] All uppercase identifier $ident is not a keyword!")
+                        warn("All uppercase identifier $ident is not a keyword!")
                     }
                     VariableToken(ident)
                 }
             }
-
+             x in "<>" -> {
+                 val shift = reader.take { it in "<>" }
+                 if(shift in keywords){
+                     return KeywordToken(TokenType.getForKeyword(shift), shift)
+                 } else {
+                     fail("Illegal Character: $x (${x.toInt()})")
+                     return CommentToken("illegal") //unreachable
+                 }
+             }
             else -> {
                 fail("Illegal Character: $x (${x.toInt()})")
                 return CommentToken("illegal") //unreachable
@@ -142,6 +151,12 @@ enum class TokenType(val keyword: String?) {
     DOLLAR      ("$"),
     LPAREN      ("("),
     RPAREN      (")"),
+    AND         ("&"),
+    OR          ("|"),
+    XOR         ("^"),
+    SHL         ("<<"),
+    SHR         (">>"),
+    SHRA        (">>>"),
     PLUS        ("+"),
     MINUS       ("-"),
     MULTIPLY    ("*"),

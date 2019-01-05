@@ -36,6 +36,11 @@ fun main(args: Array<String>) {
         compiler = Compiler(args[0], options = options)
         compiler!!.start()
 
+        if(options.outputVerbose){
+            compiler!!.warnings.forEach {
+                println("[WARNING] $it")
+            }
+        }
     }
 }
 
@@ -44,6 +49,14 @@ fun fail(msg: String){
         compiler!!.fail(msg)
     } else {
         error(msg)
+    }
+}
+
+fun warn(msg: String){
+    if(compiler != null){
+        compiler!!.warn(msg)
+    } else {
+        println(msg)
     }
 }
 
