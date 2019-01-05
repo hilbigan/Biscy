@@ -1,9 +1,16 @@
 BEGIN
-    n = 6
-    CALL fib
+    N = 6 { this fibonacci number will be calculated }
+
+    n = N
+    CALL fib_recursive
+    WRITE result 0
+
+    n = N
+    CALL fib_iterative
+    WRITE result 4
 END
 
-DEF fib
+DEF fib_recursive
     IFZ n
         result = 1
         RETURN
@@ -16,13 +23,30 @@ DEF fib
     result = 0
     PUSH n END
     n = n - 1
-    CALL fib
+    CALL fib_recursive
     POP n END
 
     PUSH result END
     n = n - 2
-    CALL fib
+    CALL fib_recursive
     temp = result
     POP result END
     result = result + temp
+END
+
+DEF fib_iterative
+    n = n + 1
+    result = 1
+
+    LOOP
+        IFN n - 1
+            BREAK
+        END
+
+        next_fib = result + last_fib
+        last_fib = result
+        result = next_fib
+
+        n = n - 1
+    END
 END
