@@ -1,7 +1,6 @@
 package eu.flybig.biscy
 
 import java.io.File
-import java.io.PushbackReader
 import java.lang.Character.isDigit
 import java.lang.Character.isWhitespace
 
@@ -33,7 +32,9 @@ class Tokenizer(file: File, val options: CompilerOptions){
 
     fun advance(){
         if(!hasNext()){
-            fail("Unexpected EOF")
+            //fail("Unexpected EOF")
+            current = EOFToken()
+            return
         }
         current = takeNext()
     }
@@ -116,7 +117,7 @@ interface Evaluable
 
 abstract class Token(val type: TokenType, val value: String) : Evaluable
 
-class VariableToken(value: String) : Token(TokenType.VARIABLE, value)
+class VariableToken(value: String) : Token(TokenType.IDENTIFIER, value)
 
 class KeywordToken(type: TokenType, value: String) : Token(type, value)
 
@@ -126,15 +127,19 @@ class IntegerToken(value: String) : Token(TokenType.INTEGER, value) {
 
 }
 
+class EOFToken : Token(TokenType.WHITESPACE, "EOF")
+
 class WhitespaceToken(value: String) : Token(TokenType.WHITESPACE, value)
 
 class CommentToken(value: String) : Token(TokenType.COMMENT, value)
 
 enum class TokenType(val keyword: String?) {
     WHITESPACE  (null),
-    VARIABLE    (null),
+    IDENTIFIER  (null),
     INTEGER     (null),
     COMMENT     (null),
+    ASM         ("\""),
+    DOLLAR      ("$"),
     LPAREN      ("("),
     RPAREN      (")"),
     PLUS        ("+"),
@@ -154,6 +159,12 @@ enum class TokenType(val keyword: String?) {
     PRINT       ("PRINT"),
     WRITE       ("WRITE"),
     LOAD        ("LOAD"),
+    ROUTINE     ("DEF"),
+    CALL        ("CALL"),
+    RETURN      ("RETURN"),
+    STACK       ("PUSH"),
+    UNSTACK     ("POP"),
+    FREE        ("FREE"),
     READ        ("READ");
 
     companion object {

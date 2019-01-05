@@ -1,6 +1,9 @@
 package eu.flybig.biscy
 
+import com.sun.org.apache.xml.internal.utils.StringBufferPool.free
 import eu.flybig.biscy.TokenType.*
+import kotlin.math.exp
+import kotlin.test.currentStackTrace
 
 class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
 
@@ -14,7 +17,45 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
     fun parse(){
         match(BEGIN)
         block()
-        match(END, noAdvance = true)
+        match(END)
+        while(tokenizer.current !is EOFToken){
+            optional(ROUTINE){
+                routine()
+            }
+        }
+        if(tokenizer.current is EOFToken)
+            match(WHITESPACE, noAdvance = true)
+        generator.endOfFile()
+    }
+
+    fun routine(){
+        match(ROUTINE)
+        if(ctype == IDENTIFIER){
+            generator.startOfRoutine(tokenizer.current.value)
+        }
+        match(IDENTIFIER)
+        block()
+        match(END)
+        generator.endOfRoutine()
+    }
+
+    fun call(){
+        match(CALL)
+        if(ctype == IDENTIFIER){
+            generator.call(tokenizer.current.value)
+        }
+        match(IDENTIFIER)
+    }
+
+    fun free(){
+        match(FREE)
+        if(ctype == IDENTIFIER){
+            if(!variables.isDeclared(tokenizer.current.value)){
+                fail("Unknown identifier ${tokenizer.current.value} (cannot free undeclared variable)")
+            }
+            variables.free(variables.getRegister(tokenizer.current.value))
+        }
+        match(IDENTIFIER)
     }
 
     fun block(allowElse: Boolean = false){
@@ -28,7 +69,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
                 doBreak()
                 empty = false
             }
-            optional(VARIABLE){
+            optional(IDENTIFIER){
                 assignment()
                 empty = false
             }
@@ -40,14 +81,84 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
                 memory(load = true)
                 empty = false
             }
+            optional(RETURN){
+                match(RETURN)
+                generator.`return`()
+                empty = false
+            }
+            optional(CALL){
+                call()
+                empty = false
+            }
+            optional(FREE){
+                free()
+                empty = false
+            }
+            optional(ASM){
+                inlineAssembly()
+                empty = false
+            }
+            optional(STACK){
+                stack(false)
+                empty = false
+            }
+            optional(UNSTACK){
+                stack(true)
+                empty = false
+            }
             optional(IFZ, IFN, IFP){
                 ifstmt()
                 empty = false
             }
             if(empty && ctype != END && (!allowElse || ctype != ELSE)){
+                if(tokenizer.current is EOFToken) fail("Unexpected EOF")
                 fail("Invalid token: $ctype (\"${tokenizer.current.value}\")")
             }
         }
+    }
+
+    fun stack(unstack: Boolean = false){
+        if(unstack) match(UNSTACK)
+        else match(STACK)
+
+        val vars = mutableListOf<String>()
+        while(ctype != END && tokenizer.current !is EOFToken){
+            vars += tokenizer.current.value
+            match(IDENTIFIER)
+        }
+        match(END)
+
+        /*if(vars.any{!variables.isDeclared(it)}){
+            fail("Undeclared variable \"${vars.first { !variables.isDeclared(it) }}\"")
+        }*/
+
+        generator.stack(unstack, vars, variables)
+    }
+
+    private fun inlineAssembly() {
+        match(ASM)
+        var string = ""
+        while(ctype != ASM && tokenizer.current !is EOFToken){
+            var dollar = false
+            optional(DOLLAR){
+                dollar = true
+                match(DOLLAR)
+                if(ctype == IDENTIFIER && variables.isDeclared(tokenizer.current.value)){
+                    string += ("x" + variables.getRegister(tokenizer.current.value) + " ")
+                    advanceToken()
+                } else {
+                    if(ctype != IDENTIFIER)
+                        fail("Expected identifier after \"$\" in inline assembly section!")
+                    else
+                        fail("Undeclared variable \"${tokenizer.current.value}\"")
+                }
+            }
+            if(dollar) continue
+            string += (tokenizer.current.value) + " "
+            advanceToken()
+        }
+        generator.direct(string)
+        match(ASM)
     }
 
     fun loop(){
@@ -96,7 +207,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
     fun memory(load: Boolean){
         match(if(load) LOAD else WRITE)
         val src = tokenizer.current.value
-        match(VARIABLE)
+        match(IDENTIFIER)
         if(ctype == INTEGER){
             val trg = tokenizer.current.value.toInt()
             val temp = if(trg != 0) variables.acquireTemporary() else 0
@@ -104,9 +215,9 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
 
             if(temp != 0) generator.direct("li x$temp $trg")
             generator.direct("${if(load) "lw" else "sw"} x${variables.getRegister(src)} 0(x$temp)")
-        } else if(ctype == VARIABLE){
+        } else if(ctype == IDENTIFIER){
             val trg = tokenizer.current.value
-            match(VARIABLE)
+            match(IDENTIFIER)
             generator.direct("${if(load) "lw" else "sw"} x${variables.getRegister(src)} 0(x${variables.getRegister(trg)})")
         } else {
             fail("Invalid target address: Must be variable or integer literal")
@@ -115,7 +226,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
 
     fun assignment(){
         val reg = variables.getRegister((tokenizer.current as VariableToken).value)
-        match(VARIABLE)
+        match(IDENTIFIER)
         match(ASSIGNMENT)
         expr(reg).resolve()
     }
@@ -188,9 +299,9 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
                 exprBuilder.add(tokenizer.current)
                 match(INTEGER)
             }
-            VARIABLE -> {
+            IDENTIFIER -> {
                 exprBuilder.add(tokenizer.current)
-                match(VARIABLE)
+                match(IDENTIFIER)
             }
             LPAREN -> {
                 match(LPAREN)
@@ -218,7 +329,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
 
     private fun advanceToken(){
         tokenizer.advance()
-        while(ctype == WHITESPACE || ctype == COMMENT) {
+        while((ctype == WHITESPACE || ctype == COMMENT) && tokenizer.current !is EOFToken) {
             tokenizer.advance()
             if(options.keepComments && ctype == COMMENT){
                 generator.direct("#" + tokenizer.current.value.substring(1, tokenizer.current.value.length - 2))
@@ -227,7 +338,8 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
     }
 
     private fun match(expected: TokenType, noAdvance: Boolean = false){
-        expect(tokenizer.current.type == expected, "Expected \"${expected.keyword}\" token, but got \"${tokenizer.current.value}\"")
+        val desc = if(expected.keyword == null) expected.name else "\"${expected.keyword}\""
+        expect(tokenizer.current.type == expected, "Expected $desc token, but got \"${tokenizer.current.value}\"")
         if(!noAdvance)
             advanceToken()
     }

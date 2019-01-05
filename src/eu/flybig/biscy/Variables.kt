@@ -1,6 +1,6 @@
 package eu.flybig.biscy
 
-const val USABLE_REGISTERS = 29
+const val USABLE_REGISTERS = 26
 
 //TODO support > 29 variables
 const val BASE_ADDRESS = 0x1C00_0000
@@ -43,11 +43,15 @@ class Variables {
     }
 
     private fun indexToRegister(idx: Int): Int {
-        return idx + 2
+        return idx + 5
     }
 
     private fun registerToIndex(reg: Int): Int {
-        return reg - 2
+        return reg - 5
+    }
+
+    fun isDeclared(ident: String): Boolean {
+        return variables.contains(ident)
     }
 
     fun dump() {

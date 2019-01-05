@@ -1,7 +1,5 @@
 package eu.flybig.biscy
 
-import java.security.Key
-
 class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variables: Variables) : Evaluable {
 
     var parts = mutableListOf<Evaluable>()
@@ -218,7 +216,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                         fail("Could not parse integer literal \"${(parts[0] as IntegerToken).value}\".")
                     }
                 }
-                TokenType.VARIABLE -> {
+                TokenType.IDENTIFIER -> {
                     return (parts[0] as VariableToken)
                 }
                 else -> fail("Invalid single token: \"${(parts[0] as Token).value}\"")

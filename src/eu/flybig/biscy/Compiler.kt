@@ -4,7 +4,7 @@ import java.io.File
 
 class Compiler(filepath: String,
                private val onFinished: () -> Unit = {},
-               private val options: CompilerOptions
+               val options: CompilerOptions
 ) {
 
     private val parser: Parser

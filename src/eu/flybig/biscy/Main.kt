@@ -33,8 +33,9 @@ fun main(args: Array<String>) {
             printVarDump = 'd' in flags
         )
 
-        val compiler = Compiler(args[0], options = options)
-        compiler.start()
+        compiler = Compiler(args[0], options = options)
+        compiler!!.start()
+
     }
 }
 

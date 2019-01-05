@@ -1,0 +1,14 @@
+BEGIN
+    x = 5
+    FREE x
+    x = 3
+    CALL fun
+END
+
+DEF fun
+    CALL fun
+END
+
+DEF inlineAsm
+    "addi $x $x 1"
+END
