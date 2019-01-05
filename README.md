@@ -41,8 +41,9 @@ END
 
 
 ### Usage
-```java -jar release/biscy.jar <input-file.bitsy> [flags]```
-Flags:
+```java -jar release/biscy.jar <input-file.bitsy> [flags]```  
+
+Flags:  
 * `v`: verbose output, warnings
 * `k`: Keep comments
 * `d`: Dump variable/register information
