@@ -17,36 +17,6 @@ Flags:
 * `k`: Keep comments
 * `d`: Dump variable/register information
 
-### Additional Features
-```
-BEGIN
-    x = 42
-    { call routines }
-    CALL identifier
-    { inline assembly - $ident to use variables }
-    "addi $x $x 1"
-    { FREE to clear a variable }
-    FREE x { x no longer used from this point on }
-
-    y = 1337
-    z = (1337 << 2) | 7331
-    PUSH y z END { push multiple variables onto the stack }
-    y = -1
-    z = -1
-    POP y z END { restore their previous values (order matters!) }
-
-    IFZ y - 1337
-        { will be executed }
-    END
-
-END
-
-{ Routines: }
-DEF identifier
-    { ... }
-END
-```
-
 ### Short doc
 
 | Token | Description | 
@@ -90,6 +60,37 @@ SHRA      |  (">>>"),
 PLUS      |  ("+"),  
 MINUS     |  ("-"),  
 MULTIPLY  |  ("*"),  
+
+
+### Additional Features - Demo
+```
+BEGIN
+    x = 42
+    { call routines }
+    CALL identifier
+    { inline assembly - $ident to use variables }
+    "addi $x $x 1"
+    { FREE to clear a variable }
+    FREE x { x no longer used from this point on }
+
+    y = 1337
+    z = (1337 << 2) | 7331
+    PUSH y z END { push multiple variables onto the stack }
+    y = -1
+    z = -1
+    POP y z END { restore their previous values (order matters!) }
+
+    IFZ y - 1337
+        { will be executed }
+    END
+
+END
+
+{ Routines: }
+DEF identifier
+    { ... }
+END
+```
 
 ### Fibonacci - Recursive and iterative
 ```
