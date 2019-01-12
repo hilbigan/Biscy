@@ -49,7 +49,7 @@ END
 
 ### Short doc
 
-Token       Description  
+Token   |    Description  
 IDENTIFIER  can contain underscores, any letters. No numbers.  
 INTEGER     1, -1, 0x1, 0b1, ...  
 COMMENT     { Comment }  
