@@ -2,6 +2,8 @@ package eu.flybig.biscy
 
 import eu.flybig.biscy.TokenType.*
 
+const val IMM_MASK = ((2 shl 11) - 1) xor -1
+
 class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variables: Variables) : Evaluable {
 
     var parts = mutableListOf<Evaluable>()
@@ -97,7 +99,11 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                         val reg = variables.getRegister((parts[2] as VariableToken).value)
                         when((parts[1] as Token).type){
                             PLUS -> {
-                                generator.direct("addi x$treg x$reg $x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("add x$treg x$temp x$reg")
+                                } else generator.direct("addi x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
                             MINUS -> {
@@ -115,15 +121,27 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                 return simpleResult(treg, variables)
                             }
                             AND -> {
-                                generator.direct("andi x$treg x$reg $x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("and x$treg x$temp x$reg")
+                                } else generator.direct("andi x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
                             OR -> {
-                                generator.direct("ori x$treg x$reg $x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("or x$treg x$temp x$reg")
+                                } else generator.direct("ori x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
                             XOR -> {
-                                generator.direct("xori x$treg x$reg $x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("xor x$treg x$temp x$reg")
+                                } else generator.direct("xori x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
                             SHL -> {
@@ -173,11 +191,19 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                         val reg = variables.getRegister((parts[0] as VariableToken).value)
                         when((parts[1] as Token).type){
                             PLUS -> {
-                                generator.direct("addi x$treg x$reg $x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("add x$treg x$temp x$reg")
+                                } else generator.direct("addi x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
                             MINUS -> {
-                                generator.direct("addi x$treg x$reg -$x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("sub x$treg x$reg x$temp")
+                                } else generator.direct("addi x$treg x$reg -$x")
                                 return simpleResult(treg, variables)
                             }
                             MULTIPLY -> {
@@ -188,27 +214,51 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                 return simpleResult(treg, variables)
                             }
                             AND -> {
-                                generator.direct("andi x$treg x$reg $x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("and x$treg x$temp x$reg")
+                                } else generator.direct("andi x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
                             OR -> {
-                                generator.direct("ori x$treg x$reg $x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("or x$treg x$temp x$reg")
+                                } else generator.direct("ori x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
                             XOR -> {
-                                generator.direct("xori x$treg x$reg $x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("xor x$treg x$temp x$reg")
+                                } else generator.direct("xori x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
                             SHL -> {
-                                generator.direct("slli x$treg x$reg $x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("sll x$treg x$reg x$temp ")
+                                } else generator.direct("slli x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
                             SHR -> {
-                                generator.direct("srli x$treg x$reg $x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("srl x$treg x$reg x$temp ")
+                                } else generator.direct("srli x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
                             SHRA -> {
-                                generator.direct("srai x$treg x$reg x$x")
+                                if((x and IMM_MASK) != 0){
+                                    val temp = variables.acquireTemporary()
+                                    generator.direct("li x$temp $x")
+                                    generator.direct("sra x$treg x$reg x$temp ")
+                                } else generator.direct("srai x$treg x$reg x$x")
                                 return simpleResult(treg, variables)
                             }
                             DIVIDE, MODULUS -> {

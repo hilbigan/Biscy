@@ -36,6 +36,13 @@ class Generator(val indent: Boolean = true, val outPrefix: String) {
         fout("beq x0 x0 END_${loopIdentStack.peek()}")
     }
 
+    fun continueLoop(){
+        if(loopIdentStack.empty()){
+            fail("Unexpected CONTINUE: Not in loop")
+        }
+        fout("beq x0 x0 ${loopIdentStack.peek()}")
+    }
+
     fun `return`(){
         if(!inRoutine){
             fout("jal x0 END")

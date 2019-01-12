@@ -24,6 +24,8 @@ class Tokenizer(file: File, val options: CompilerOptions){
             field = value
         }
 
+    var inlineAssemblyMode = false
+
     private val reader: FileReader = FileReader(file)
     private var linesRead = 0
 
@@ -96,6 +98,10 @@ class Tokenizer(file: File, val options: CompilerOptions){
                  }
              }
             else -> {
+                if(inlineAssemblyMode){
+                    warn("Illegal character $x was ignored in inline assembly section!")
+                    return KeywordToken(TokenType.IDENTIFIER, "${reader.next()}")
+                }
                 fail("Illegal Character: $x (${x.toInt()})")
                 return CommentToken("illegal") //unreachable
             }
@@ -171,6 +177,7 @@ enum class TokenType(val keyword: String?) {
     ELSE        ("ELSE"),
     LOOP        ("LOOP"),
     BREAK       ("BREAK"),
+    CONTINUE    ("CONTINUE"),
     PRINT       ("PRINT"),
     WRITE       ("WRITE"),
     LOAD        ("LOAD"),

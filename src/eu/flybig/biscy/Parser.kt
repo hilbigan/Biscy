@@ -69,6 +69,10 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
                 doBreak()
                 empty = false
             }
+            optional(CONTINUE){
+                doContinue()
+                empty = false
+            }
             optional(IDENTIFIER){
                 assignment()
                 empty = false
@@ -138,6 +142,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
     }
 
     private fun inlineAssembly() {
+        tokenizer.inlineAssemblyMode = true
         match(ASM)
         var string = ""
         while(ctype != ASM && tokenizer.current !is EOFToken){
@@ -159,6 +164,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
             string += (tokenizer.current.value) + " "
             advanceToken()
         }
+        tokenizer.inlineAssemblyMode = false
         generator.direct(string)
         match(ASM)
     }
@@ -236,6 +242,11 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
     fun doBreak(){
         match(BREAK)
         generator.breakLoop()
+    }
+
+    fun doContinue(){
+        match(CONTINUE)
+        generator.continueLoop()
     }
 
     fun expr(evalReg: Int): ExpressionBuilder {
