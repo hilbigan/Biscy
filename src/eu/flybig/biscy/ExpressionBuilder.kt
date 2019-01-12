@@ -103,6 +103,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
                                     generator.direct("add x$treg x$temp x$reg")
+                                    variables.free(temp)
                                 } else generator.direct("addi x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
@@ -125,6 +126,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
                                     generator.direct("and x$treg x$temp x$reg")
+                                    variables.free(temp)
                                 } else generator.direct("andi x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
@@ -133,6 +135,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
                                     generator.direct("or x$treg x$temp x$reg")
+                                    variables.free(temp)
                                 } else generator.direct("ori x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
@@ -141,6 +144,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
                                     generator.direct("xor x$treg x$temp x$reg")
+                                    variables.free(temp)
                                 } else generator.direct("xori x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
@@ -195,6 +199,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
                                     generator.direct("add x$treg x$temp x$reg")
+                                    variables.free(temp)
                                 } else generator.direct("addi x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
@@ -203,6 +208,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
                                     generator.direct("sub x$treg x$reg x$temp")
+                                    variables.free(temp)
                                 } else generator.direct("addi x$treg x$reg -$x")
                                 return simpleResult(treg, variables)
                             }
@@ -218,6 +224,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
                                     generator.direct("and x$treg x$temp x$reg")
+                                    variables.free(temp)
                                 } else generator.direct("andi x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
@@ -226,6 +233,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
                                     generator.direct("or x$treg x$temp x$reg")
+                                    variables.free(temp)
                                 } else generator.direct("ori x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
@@ -234,6 +242,7 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
                                     generator.direct("xor x$treg x$temp x$reg")
+                                    variables.free(temp)
                                 } else generator.direct("xori x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
@@ -241,7 +250,8 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                 if((x and IMM_MASK) != 0){
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
-                                    generator.direct("sll x$treg x$reg x$temp ")
+                                    generator.direct("sll x$treg x$reg x$temp")
+                                    variables.free(temp)
                                 } else generator.direct("slli x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
@@ -249,7 +259,8 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                 if((x and IMM_MASK) != 0){
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
-                                    generator.direct("srl x$treg x$reg x$temp ")
+                                    generator.direct("srl x$treg x$reg x$temp")
+                                    variables.free(temp)
                                 } else generator.direct("srli x$treg x$reg $x")
                                 return simpleResult(treg, variables)
                             }
@@ -257,7 +268,8 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
                                 if((x and IMM_MASK) != 0){
                                     val temp = variables.acquireTemporary()
                                     generator.direct("li x$temp $x")
-                                    generator.direct("sra x$treg x$reg x$temp ")
+                                    generator.direct("sra x$treg x$reg x$temp")
+                                    variables.free(temp)
                                 } else generator.direct("srai x$treg x$reg x$x")
                                 return simpleResult(treg, variables)
                             }
