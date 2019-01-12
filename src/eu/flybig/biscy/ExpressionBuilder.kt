@@ -7,10 +7,13 @@ const val IMM_MASK = ((2 shl 11) - 1) xor -1
 class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variables: Variables) : Evaluable {
 
     var parts = mutableListOf<Evaluable>()
+    var temps = mutableListOf<Int>()
 
     fun resolve(ifstmt: Boolean = false): Int {
         val initialSize = parts.size
         val result = eval()
+        freeTemps()
+
         when(result){
             is IntegerToken -> generator.direct("li x$evalReg ${result.value.toInt()}")
             is VariableToken -> if(variables.getRegister(result.value) != evalReg && !ifstmt){
@@ -22,10 +25,22 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
         return evalReg
     }
 
+    /**
+     * should be called after eval
+     */
+    fun freeTemps(){
+        temps.forEach(variables::free)
+    }
+
     fun eval(treg: Int = evalReg): Token {
+        temps = mutableListOf()
         parts = parts.map {
             if(it is ExpressionBuilder){
-                it.eval(variables.acquireTemporary())
+                val tmp = variables.acquireTemporary()
+                temps.add(tmp)
+                val result = it.eval(tmp)
+                it.freeTemps()
+                result
             } else {
                 it
             }
@@ -35,7 +50,8 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
 
         while(parts.size > 3){
             if(parts.any(::orderOfOperations)){
-                val expr = ExpressionBuilder(variables.acquireTemporary(), generator, variables)
+                val tmp = variables.acquireTemporary()
+                val expr = ExpressionBuilder(tmp, generator, variables)
                 val idx = parts.indexOf(parts.first(::orderOfOperations))
 
                 expr.add(parts[idx - 1])
@@ -44,17 +60,24 @@ class ExpressionBuilder(val evalReg: Int, val generator: Generator, val variable
 
                 parts = parts.filterIndexed { index, _ -> index !in listOf(idx - 1, idx, idx + 1) }.toMutableList()
 
-                parts.add(idx - 1, expr.eval())
+                val eval = expr.eval()
+                expr.freeTemps()
+                parts.add(idx - 1, eval)
+                variables.free(tmp)
             } else {
+                val tmp = variables.acquireTemporary()
                 val takeThree = parts[0] !is KeywordToken
-                val expr = ExpressionBuilder(variables.acquireTemporary(), generator, variables)
+                val expr = ExpressionBuilder(tmp, generator, variables)
                 expr.add(parts[0])
                 expr.add(parts[1])
                 if (takeThree)
                     expr.add(parts[2])
                 parts = parts.drop(if (takeThree) 3 else 2).toMutableList()
 
-                parts.add(0, expr.eval())
+                val eval = expr.eval()
+                expr.freeTemps()
+                parts.add(0, eval)
+                variables.free(tmp)
             }
         }
 

@@ -174,6 +174,7 @@ enum class TokenType(val keyword: String?) {
     IFP         ("IFP"),
     IFZ         ("IFZ"),
     IFN         ("IFN"),
+    IFNZ         ("IFNZ"),
     ELSE        ("ELSE"),
     LOOP        ("LOOP"),
     BREAK       ("BREAK"),

@@ -110,7 +110,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
                 stack(true)
                 empty = false
             }
-            optional(IFZ, IFN, IFP){
+            optional(IFZ, IFN, IFP, IFNZ){
                 ifstmt()
                 empty = false
             }
@@ -184,6 +184,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
         val ifType = ctype
 
         when (ctype) {
+            IFNZ-> match(IFNZ)
             IFZ -> match(IFZ)
             IFN -> match(IFN)
             IFP -> match(IFP)
@@ -193,6 +194,10 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
         val temp = expr(variables.acquireTemporary()).resolve(true)
 
         generator.beginIf(ifType, temp)
+
+        if(variables.isTemporary(temp)){
+            variables.free(temp)
+        }
 
         block(allowElse = true)
 
@@ -223,6 +228,7 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
 
             if(temp != 0) generator.direct("li x$temp $trg")
             generator.direct("${if(load) "lw" else "sw"} x${variables.getRegister(src)} 0(x$temp)")
+            if(temp != 0) variables.free(temp)
         } else if(ctype == IDENTIFIER){
             val trg = tokenizer.current.value
             match(IDENTIFIER)

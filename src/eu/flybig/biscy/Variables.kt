@@ -16,7 +16,9 @@ class Variables {
         return indexToRegister(if(variables.contains(ident)){
             variables.indexOf(ident)
         } else {
-            val idx = variables.indexOf(variables.find { it == null })
+            val idx = if(ident.startsWith("[temp")){
+                variables.indexOf(variables.findLast { it == null })
+            } else variables.indexOf(variables.find { it == null })
             if(idx == -1){
                 fail("Too many variables! Currently only $USABLE_REGISTERS variables are supported!")
             }
@@ -32,6 +34,10 @@ class Variables {
             fail("Unused register ${registerToIndex(register)}")
             return "" //unreachable
         }
+    }
+
+    fun isTemporary(register: Int): Boolean {
+        return getIdentifier(register).startsWith("[temp")
     }
 
     fun acquireTemporary(): Int {

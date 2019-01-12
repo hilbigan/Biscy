@@ -55,6 +55,7 @@ class Generator(val indent: Boolean = true, val outPrefix: String) {
     fun beginIf(ifType: TokenType, exprReg: Int){
         val ident = "IF_" + (ifs++)
         when(ifType){
+            IFNZ-> fout("beq x$exprReg x0 END_$ident")
             IFZ -> fout("bne x$exprReg x0 END_$ident")
             IFP -> fout("blt x$exprReg x0 END_$ident")
             IFN -> fout("bgt x$exprReg x0 END_$ident")
