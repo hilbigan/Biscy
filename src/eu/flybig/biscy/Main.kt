@@ -1,6 +1,7 @@
 package eu.flybig.biscy
 
 import java.io.File
+import kotlin.system.exitProcess
 
 var compiler: Compiler? = null
 
@@ -12,15 +13,15 @@ fun main(args: Array<String>) {
     if(args.isEmpty()){
         println("Not enough arguments.")
         printUsage()
-        System.exit(1)
+        exitProcess(1)
     } else {
         if(args[0] in listOf("?","h","help","-help")){
             printUsage()
-            System.exit(0)
+            exitProcess(0)
         }
         if(!File(args[0]).exists()){
             println("File does not exist.")
-            System.exit(1)
+            exitProcess(1)
         }
 
         val flags = if(args.size > 1){

@@ -2,7 +2,6 @@ package eu.flybig.biscy
 
 import java.io.File
 import java.io.PushbackReader
-import java.io.Reader
 
 class FileReader(file: File) : PushbackReader(file.bufferedReader()) {
 
@@ -11,7 +10,9 @@ class FileReader(file: File) : PushbackReader(file.bufferedReader()) {
 
     fun next(): Char {
         val ret = this.read().toChar()
-        if(ret == '\n') linesRead++
+        if(ret == '\n') {
+            linesRead++
+        }
         return ret
     }
 

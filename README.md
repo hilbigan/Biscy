@@ -1,4 +1,4 @@
-# Biscy
+# Biscy (toy compiler project)
 Bitsy to RISC-V compiler ([Bitsy Specification](https://github.com/apbendi/bitsyspec/blob/master/BITSY.md)).
 `PRINT` and `READ` are not supported, instead `WRITE` and `LOAD` have been added:
 ```
@@ -153,14 +153,14 @@ Full compiler output (kvd):
 [OUTPUT] li x8 4
 [OUTPUT] sw x7 0(x8)
 [OUTPUT] jal x0 END
-[OUTPUT]
+[OUTPUT] 
 [OUTPUT] fib_recursive:
 [OUTPUT] 	bne x6 x0 END_IF_0
 [OUTPUT] 		li x7 1
 [OUTPUT] 		jalr x0 0(x1)
 [OUTPUT] 	END_IF_0:
-[OUTPUT] 	addi x10 x6 -1
-[OUTPUT] 	bne x10 x0 END_IF_1
+[OUTPUT] 	addi x9 x6 -1
+[OUTPUT] 	bne x9 x0 END_IF_1
 [OUTPUT] 		li x7 1
 [OUTPUT] 		jalr x0 0(x1)
 [OUTPUT] 	END_IF_1:
@@ -183,42 +183,36 @@ Full compiler output (kvd):
 [OUTPUT] 	jal x1 fib_recursive
 [OUTPUT] 	lw x1 0(sp)
 [OUTPUT] 	addi sp sp 4
-[OUTPUT] 	add x11 x7 x0
+[OUTPUT] 	add x9 x7 x0
 [OUTPUT] 	lw x7 0(sp)
 [OUTPUT] 	addi sp sp 4
-[OUTPUT] 	add x7 x7 x11
+[OUTPUT] 	add x7 x7 x9
 [OUTPUT] jalr x0 0(x1)
-[OUTPUT]
+[OUTPUT] 
 [OUTPUT] fib_iterative:
 [OUTPUT] 	addi x6 x6 1
 [OUTPUT] 	li x7 1
 [OUTPUT] 	LOOP_0:
-[OUTPUT] 		addi x12 x6 -1
-[OUTPUT] 		bgt x12 x0 END_IF_2
+[OUTPUT] 		addi x9 x6 -1
+[OUTPUT] 		bgt x9 x0 END_IF_2
 [OUTPUT] 			beq x0 x0 END_LOOP_0
 [OUTPUT] 		END_IF_2:
-[OUTPUT] 		add x13 x7 x14
-[OUTPUT] 		add x14 x7 x0
-[OUTPUT] 		add x7 x13 x0
+[OUTPUT] 		add x9 x7 x10
+[OUTPUT] 		add x10 x7 x0
+[OUTPUT] 		add x7 x9 x0
 [OUTPUT] 		addi x6 x6 -1
 [OUTPUT] 	beq x0 x0 LOOP_0
 [OUTPUT] 	END_LOOP_0:
 [OUTPUT] jalr x0 0(x1)
-[OUTPUT]
+[OUTPUT] 
 [OUTPUT] END:
 === Begin Var Dump ===
 [VARS] x5	N
 [VARS] x6	n
 [VARS] x7	result
-[VARS] x8	[temp0]
-[VARS] x9	[temp1]
-[VARS] x10	[temp2]
-[VARS] x11	temp
-[VARS] x12	[temp3]
-[VARS] x13	next_fib
-[VARS] x14	last_fib
+[VARS] x8	[temp1]
 === End Var Dump ===
 [WARNING] All uppercase identifier N is not a keyword!
-[WARNING] All uppercase identifier N is not a keyword!
-[WARNING] All uppercase identifier N is not a keyword!
+[WARNING] Variable temp is declared inside a function ('fib_recursive', line 32). Remember to FREE this to save space!
+[WARNING] Variable next_fib is declared inside a function ('fib_iterative', line 49). Remember to FREE this to save space!
 ```
