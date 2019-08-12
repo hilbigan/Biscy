@@ -31,7 +31,10 @@ DEF fib_recursive
     CALL fib_recursive
     temp = result
     POP result END
+
     result = result + temp
+
+    FREE temp
 END
 
 DEF fib_iterative
@@ -49,4 +52,7 @@ DEF fib_iterative
 
         n = n - 1
     END
+
+    FREE next_fib
+    FREE last_fib
 END

@@ -3,7 +3,6 @@ package eu.flybig.biscy
 import java.io.File
 import java.lang.Character.isDigit
 import java.lang.Character.isWhitespace
-import javax.lang.model.SourceVersion.isIdentifier
 
 
 private const val identifierChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
@@ -26,8 +25,7 @@ class Tokenizer(file: File, val options: CompilerOptions){
 
     var inlineAssemblyMode = false
 
-    private val reader: FileReader = FileReader(file)
-    private var linesRead = 0
+    val reader: FileReader = FileReader(file)
 
     fun hasNext(): Boolean {
         return reader.ready() && reader.peek() != 65535.toChar()

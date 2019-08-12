@@ -1,9 +1,6 @@
 package eu.flybig.biscy
 
-import com.sun.org.apache.xml.internal.utils.StringBufferPool.free
 import eu.flybig.biscy.TokenType.*
-import kotlin.math.exp
-import kotlin.test.currentStackTrace
 
 class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
 
@@ -239,7 +236,12 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
     }
 
     fun assignment(){
-        val reg = variables.getRegister((tokenizer.current as VariableToken).value)
+        val name = (tokenizer.current as VariableToken).value
+        if(!variables.isDeclared(name) && generator.inRoutine){ //FIXME this wont work if variable is used in an expression for the first time.
+            warn("Variable $name is declared inside a function ('${generator.routines.last()}', line ${tokenizer.reader.linesRead + 1})." +
+                    " Remember to FREE this to save space!")
+        }
+        val reg = variables.getRegister(name)
         match(IDENTIFIER)
         match(ASSIGNMENT)
         expr(reg).resolve()

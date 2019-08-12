@@ -30,7 +30,8 @@ class Compiler(filepath: String,
     }
 
     fun warn(msg: String){
-        warnings.add(msg)
+        if(msg !in warnings)
+            warnings.add(msg)
     }
 
 }
