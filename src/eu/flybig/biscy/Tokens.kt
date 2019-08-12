@@ -120,7 +120,8 @@ class Tokenizer(file: File, val options: CompilerOptions){
 
     fun fail(msg: String){
         System.err.println("[ERROR] $msg")
-        System.err.println("at ${reader.fileName} line ${reader.linesRead + 1}")
+        if(compiler?.parser?.generator?.inRoutine == true) System.err.println("\tin Routine '${compiler!!.parser.generator.routines.last()}'")
+        System.err.println("\tat ${reader.fileName} line ${reader.linesRead + 1}")
         System.exit(1)
     }
 

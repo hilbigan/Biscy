@@ -7,8 +7,8 @@ class Compiler(filepath: String,
                val options: CompilerOptions
 ) {
 
-    private val parser: Parser
-    private val tokenizer: Tokenizer
+    val parser: Parser
+    val tokenizer: Tokenizer
 
     val warnings = mutableListOf<String>()
 
