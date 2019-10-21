@@ -17,7 +17,52 @@ Flags:
 * `k`: Keep comments
 * `d`: Dump variable/register information
 
-### Additional Features
+### Short doc
+
+| Token | Description | 
+| --- | --- |
+| IDENTIFIER | can contain underscores, any letters. No numbers. | 
+INTEGER   |  1, -1, 0x1, 0b1, ...  
+COMMENT   |  { Comment }  
+"ASM"    |   "inline assembly section". Use variables by inserting them with prepended '$'. (e.g. "addi $var x0 0")  
+$         |  see above  
+BEGIN     |  Starts a program and the "main"-block at the same time  
+END       |  Ends any block, function, loop, if-stmt, or the program.  
+IFP       |  if expr positive. Syntax: IFP <expr> ... END  
+IFZ       |  if expr zero  
+IFN       |  if expr negative  
+IFNZ      |  if expr not zero  
+ELSE      |  starts else block. Syntax: IFZ 1 ... ELSE ... END  
+LOOP      |  starts an infinite loop  
+BREAK      | breaks out of an loop  
+CONTINUE   | skips to loop header  
+WRITE      | WRITE <variable to write> <address to write to (register or literal)>  
+LOAD      |  LOAD  <variable to load into> <address to read from (register or literal)>  
+DEF       |  starts a function. Syntax: DEF identifier ... END  
+CALL      |  calls a function. Syntax: CALL identifier  
+RETURN    |  return from a function  
+PUSH      |  push variable to stack  
+POP       |  pop variable from stack 
+FREE      |  frees the memory allocated for a variable (currently -> frees register), effectively making it invalid.  
+    
+Supported operators:
+
+| Name | Char |
+| --- | --- |
+LPAREN   |   ("("),  
+RPAREN   |   (")"),  
+AND      |   ("&"),  
+OR       |   ("|"),  
+XOR      |   ("^"),  
+SHL       |  ("<<"),  
+SHR       |  (">>"),  
+SHRA      |  (">>>"),  
+PLUS      |  ("+"),  
+MINUS     |  ("-"),  
+MULTIPLY  |  ("*"),  
+
+
+### Additional Features - Demo
 ```
 BEGIN
     x = 42
@@ -46,45 +91,6 @@ DEF identifier
     { ... }
 END
 ```
-
-### Short doc
-
-Token       Description
-IDENTIFIER  can contain underscores, any letters. No numbers.
-INTEGER     1, -1, 0x1, 0b1, ...
-COMMENT     { Comment }
-"ASM"       "inline assembly section". Use variables by inserting them with prepended '$'. (e.g. "addi $var x0 0")
-$           see above
-BEGIN       Starts a program and the "main"-block at the same time
-END         Ends any block, function, loop, if-stmt, or the program.
-IFP         if expr positive. Syntax: IFP <expr> ... END
-IFZ         if expr zero
-IFN         if expr negative
-IFNZ        if expr not zero
-ELSE        starts else block. Syntax: IFZ 1 ... ELSE ... END
-LOOP        starts an infinite loop.
-BREAK       breaks out of an loop
-CONTINUE    skips to loop header
-WRITE       WRITE <variable to write> <address to write to (register or literal)>
-LOAD        LOAD  <variable to load into> <address to read from (register or literal)>
-DEF         starts a function. Syntax: DEF identifier ... END
-CALL        calls a function. Syntax: CALL identifier
-RETURN      return from a function
-PUSH        push variable to stack
-POP         pop variable from stack
-FREE        frees the memory allocated for a variable (currently -> frees register), effectively making it invalid.
-Supported operators:
-LPAREN      ("("),
-RPAREN      (")"),
-AND         ("&"),
-OR          ("|"),
-XOR         ("^"),
-SHL         ("<<"),
-SHR         (">>"),
-SHRA        (">>>"),
-PLUS        ("+"),
-MINUS       ("-"),
-MULTIPLY    ("*"),
 
 ### Fibonacci - Recursive and iterative
 ```
