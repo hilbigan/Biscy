@@ -19,6 +19,9 @@ class Parser(val tokenizer: Tokenizer, val options: CompilerOptions){
             optional(ROUTINE){
                 routine()
             }
+            if(ctype != WHITESPACE && ctype != ROUTINE){
+                fail("Unexpected token type '${ctype.name}'. Expected EOF.")
+            }
         }
         if(tokenizer.current is EOFToken)
             match(WHITESPACE, noAdvance = true)
